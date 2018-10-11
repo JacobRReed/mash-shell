@@ -1,24 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAXIN 255
-#define MAXARGS 4
+#define MAXCMDS 4
+#define MAXARGS 5
 #define PRESEP "­­­­­-----CMD "
 #define SEP "--------------------------------------------------------------------------------"
 
 int main(int argc, char const *argv[])
 {
   //String Array and memory allocation
-  char *userCommands[MAXARGS];
-  for (int i = 0; i < MAXARGS; i++)
+  char *userCommands[MAXCMDS];
+  for (int i = 0; i < MAXCMDS; i++)
   {
     userCommands[i] = malloc(MAXIN);
   }
 
   //Command 1
   printf("Welcome to MASH!\nmash-1>");
-  fscanf(stdin, "%s", userCommands[0]);
+  fgets(userCommands[0], MAXIN, stdin);
+  printf("Full: %s\n", userCommands[0]);
+  char *cmd1[MAXARGS];
+  char *cmd1_token = strtok(userCommands[0], " ");
+
+  for (int i = 0; i < MAXARGS; i++)
+  {
+    if (cmd1_token != NULL)
+    {
+      cmd1[i] = cmd1_token;
+      printf("cmd1[%d]=%s\n", i, cmd1[i]);
+      cmd1_token = strtok(NULL, " ");
+    }
+    else
+    {
+      cmd1[i] = NULL;
+    }
+  }
+  printf("cmd1 size: %d\n", sizeof(cmd1));
 
   //Command 2
   printf("mash-2>");
