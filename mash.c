@@ -3,7 +3,9 @@
 #include <unistd.h>
 
 #define MAXIN 255
-#define MAXARGS 5 //or support infinite for extra credit
+#define MAXARGS 4
+#define PRESEP "­­­­­-----CMD "
+#define SEP "--------------------------------------------------------------------------------"
 
 int main(int argc, char const *argv[])
 {
@@ -29,11 +31,6 @@ int main(int argc, char const *argv[])
   //File path
   printf("file>");
   fscanf(stdin, "%s", userCommands[3]);
-
-  //TEST OUT
-  printf("Size of userCommands: %d\n", userCommands);
-  printf("Size of each command: %lu\n", sizeof(&userCommands[0]));
-  printf("Command #1: %s\nCommand #2: %s\nCommand #3: %s\nFile Command: %s", userCommands[0], userCommands[1], userCommands[2], userCommands[3]);
 
   return 0;
 }
