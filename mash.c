@@ -5,10 +5,46 @@
 
 #define MAXIN 255
 #define MAXCMDS 4
-#define MAXARGS 5
+#define MAXARGS 4
 #define PRESEP "­­­­­-----CMD "
 #define SEP "--------------------------------------------------------------------------------"
 
+struct Command
+{
+  char *base;
+  char **arguments; //array of pointers
+  int count;
+};
+
+//Takes a commands string and splits by spaces, returning a string array, including command
+struct Command splitCommand(char *cmd)
+{
+  char *cmdArgs[MAXARGS];
+
+  char *cmd_token = strtok(cmd, " "); //set pointer to first space
+  cmd_token = strtok(NULL, " ");      //Chop off first command
+  char *cmdFirst = strtok(cmd, " ");  //First command
+  int totalArgs = 0;                  //argument counter
+  struct Command retCommand;          //command struct
+  retCommand.base = cmdFirst;
+
+  //Loop through and get all args
+  for (int i = 0; i < MAXARGS; i++)
+  {
+    if (cmd_token != NULL)
+    {
+      totalArgs++;
+      cmdArgs[i] = cmd_token;
+      cmd_token = strtok(NULL, " ");
+    }
+  }
+
+  retCommand.arguments = cmdArgs;
+  retCommand.count = totalArgs;
+  return retCommand;
+}
+
+//MAIN
 int main(int argc, char const *argv[])
 {
   //String Array and memory allocation
@@ -21,36 +57,9 @@ int main(int argc, char const *argv[])
   //Command 1
   printf("Welcome to MASH!\nmash-1>");
   fgets(userCommands[0], MAXIN, stdin);
-  printf("Full: %s\n", userCommands[0]);
-  char *cmd1[MAXARGS];
-  char *cmd1_token = strtok(userCommands[0], " ");
-
-  for (int i = 0; i < MAXARGS; i++)
-  {
-    if (cmd1_token != NULL)
-    {
-      cmd1[i] = cmd1_token;
-      printf("cmd1[%d]=%s\n", i, cmd1[i]);
-      cmd1_token = strtok(NULL, " ");
-    }
-    else
-    {
-      cmd1[i] = NULL;
-    }
-  }
-  printf("cmd1 size: %d\n", sizeof(cmd1));
-
-  //Command 2
-  printf("mash-2>");
-  fscanf(stdin, "%s", userCommands[1]);
-
-  //Command 3
-  printf("mash-3>");
-  fscanf(stdin, "%s", userCommands[2]);
-
-  //File path
-  printf("file>");
-  fscanf(stdin, "%s", userCommands[3]);
-
+  struct Command cmd1 = splitCommand(userCommands[0]);
+  printf("%s ", cmd1.base);
+  printf("%s ", cmd1.arguments[0]);
+  printf("%s ", cmd1.arguments[1]);
   return 0;
 }
