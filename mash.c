@@ -119,7 +119,6 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
     p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 
     execvp(splitCommand1[0], splitCommand1);
-    strncpy(res.result1, "CMD1:[SHELL 1] STATUS CODE=-1", sizeof(char *));
   }
   else //Parent Controlled
   {
@@ -144,7 +143,6 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
       close(STDOUT_FILENO);
       p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
       execvp(splitCommand2[0], splitCommand2);
-      strncpy(res.result2, "CMD2:[SHELL 2] STATUS CODE=-1", sizeof(char *));
     }
     else //Parent Controlled
     {
@@ -169,7 +167,6 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
         close(STDOUT_FILENO);
         p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
         execvp(splitCommand3[0], splitCommand3);
-        strncpy(res.result3, "CMD3:[SHELL 3] STATUS CODE=-1", sizeof(char *));
       }
       else //Parent Controlled
       {
