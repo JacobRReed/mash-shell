@@ -6,7 +6,6 @@ Autumn 2018
 Comments:
 Supports unlimited arguments
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,6 +22,11 @@ Supports unlimited arguments
 
 int currProc = 0;
 const char *procStrFin[] = {"First process finished...", "Second process finished...", "Third process finished..."};
+int p1file = 0;
+int p2file = 0;
+int p3file = 0;
+pid_t wpid;
+int status = 0;
 
 struct Response
 {
@@ -106,7 +110,6 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
   if (p1 < 0)
   {
     //Output redirect to file and run command
-    int p1file = 0;
     close(STDOUT_FILENO);
     p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
     printf("CMD1:[SHELL 1] STATUS CODE=-1");
@@ -114,10 +117,8 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
   else if (p1 == 0) //P1 Controlled
   {
     //Output redirect to file and run command
-    int p1file = 0;
     close(STDOUT_FILENO);
     p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-
     execvp(splitCommand1[0], splitCommand1);
   }
   else //Parent Controlled
@@ -132,14 +133,12 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
     if (p2 < 0)
     {
       //Output redirect to file and run command
-      int p2file = 0;
       close(STDOUT_FILENO);
       p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
       printf("CMD2:[SHELL 2] STATUS CODE=-1");
     }
     else if (p2 == 0) //P2 Controlled
     {
-      int p2file = 0;
       close(STDOUT_FILENO);
       p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
       execvp(splitCommand2[0], splitCommand2);
@@ -156,14 +155,12 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
       if (p3 < 0)
       {
         //Output redirect to file and run command
-        int p3file = 0;
         close(STDOUT_FILENO);
         p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
         printf("CMD3:[SHELL 3] STATUS CODE=-1");
       }
       else if (p3 == 0) //P3 Controlled
       {
-        int p3file = 0;
         close(STDOUT_FILENO);
         p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
         execvp(splitCommand3[0], splitCommand3);
@@ -175,7 +172,9 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
         printf("%s\n", procStrFin[currProc]);
         res.pid3 = p3;
         res.time3 = time_spent3;
-        int parent = wait(NULL); //Wait on children
+        printf("Reading output from file and deleting temp files...\n");
+        while ((wpid = wait(&status)) > 0)
+          ;
         return res;
       }
     }
@@ -188,80 +187,54 @@ float max(float num1, float num2)
   return (num1 > num2) ? num1 : num2;
 }
 
-/* Take file path and read from file*/
+/* Take file path and read from file. Returns content*/
 char *readFromFile(char *filename)
 {
-  char *buffer = NULL;
-  int string_size, read_size;
-  FILE *file = fopen(filename, "r");
+  char *buffer = 0;
+  long length;
+  FILE *f = fopen(filename, "rb");
 
-  if (file)
+  if (f)
   {
-    //Find last byte
-    fseek(file, 0, SEEK_END);
-    //Get filesize
-    string_size = ftell(file);
-    rewind(file);
-    //Allocate mem
-    buffer = (char *)malloc(sizeof(char) * (string_size + 1));
-    //Read it
-    read_size = fread(buffer, sizeof(char), string_size, file);
-    //Add null terminator
-    buffer[string_size] = '\0';
-    if (string_size != read_size) //Couldn't read in chunk
+    fseek(f, 0, SEEK_END);
+    length = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    buffer = (char *)malloc((length + 1) * sizeof(char));
+    if (buffer)
     {
-      free(buffer);
-      buffer = NULL;
+      fread(buffer, sizeof(char), length, f);
     }
-    fclose(file);
+    fclose(f);
   }
+  buffer[length] = '\0';
+  remove(filename); //Delete file
   return buffer;
 }
 
-//Deletes file
-int deleteFile(char *filename)
+//Asks for input with prompt, returns string
+char *getInput(char *prompt)
 {
-  if (remove(filename) == 0)
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
+  char buf[MAXIN];
+  printf("%s", prompt);
+  fgets(buf, MAXIN, stdin);
+  buf[strcspn(buf, "\n")] = 0; //remove newlines
+  return strdup(buf);
 }
 
 //MAIN
 int main(int argc, char const *argv[])
 {
+  //Prompts
   char buf[MAXIN];
-  //Command 1
-  printf("Welcome to MASH!\nmash-1>");
-  fgets(buf, MAXIN, stdin);
-  buf[strcspn(buf, "\n")] = 0; //remove newlines
-  char *cmd1 = strdup(buf);
+  char *cmd1 = getInput("Welcome to MASH!\nmash-1>");
+  char *cmd2 = getInput("mash-2>");
+  char *cmd3 = getInput("mash-3>");
+  char *fileCmd = getInput("file>");
 
-  //Command 2
-  printf("mash-2>");
-  fgets(buf, MAXIN, stdin);
-  buf[strcspn(buf, "\n")] = 0; //remove newlines
-  char *cmd2 = strdup(buf);
+  //Run commands and generate responses into struct
+  struct Response response = runCmd(strdup(cmd1), strdup(cmd2), strdup(cmd3), strdup(fileCmd));
 
-  //Command 3
-  printf("mash-3>");
-  fgets(buf, MAXIN, stdin);
-  buf[strcspn(buf, "\n")] = 0; //remove newlines
-  char *cmd3 = strdup(buf);
-
-  // File Command
-  printf("file>");
-  fgets(buf, MAXIN, stdin);
-  buf[strcspn(buf, "\n")] = 0; //remove newlines
-  char *fileCmd = strdup(buf);
-
-  struct Response response = runCmd(cmd1, cmd2, cmd3, fileCmd);
-
-  //Command Results Output
+  //Command Results Output Formatting
   int pre = 12;
   int cmd1Len = 80 - (strlen(cmd1) + pre);
   int cmd2Len = 80 - (strlen(cmd2) + pre);
@@ -287,11 +260,7 @@ int main(int argc, char const *argv[])
   char *cmd2Out = readFromFile("p2.temp");
   char *cmd3Out = readFromFile("p3.temp");
 
-  //Delete Files
-  deleteFile("p1.temp");
-  deleteFile("p2.temp");
-  deleteFile("p3.temp");
-
+  //Output results
   printf("-----CMD 1: %s%s\n", cmd1, cmd1Sep);
   printf("%sResult took:%fms\n", cmd1Out, response.time1);
   printf("-----CMD 2: %s%s\n", cmd2, cmd2Sep);
@@ -299,7 +268,9 @@ int main(int argc, char const *argv[])
   printf("-----CMD 3: %s%s\n", cmd3, cmd3Sep);
   printf("%sResult took:%fms\n", cmd3Out, response.time3);
   printf("%s\n", SEP);
+  printf("Parent PID: %d\n", getpid());
   printf("Children process IDs: %d %d %d.\n", response.pid1, response.pid2, response.pid3);
   printf("Total elapsed time:%fms\n", max(response.time3, max(response.time2, response.time1)));
+
   return 0;
 }
