@@ -3,7 +3,7 @@ Jacob Reed
 Operating Systems
 University of Washington Tacoma
 Autumn 2018
-Comments:
+EXTRA CREDIT ALERT!:
 Supports unlimited arguments
 */
 #include <stdio.h>
@@ -20,14 +20,13 @@ Supports unlimited arguments
 #define MAXIN 255
 #define SEP "--------------------------------------------------------------------------------"
 
+//Globals
 int currProc = 0;
 const char *procStrFin[] = {"First process finished...", "Second process finished...", "Third process finished..."};
-int p1file = 0;
-int p2file = 0;
-int p3file = 0;
 pid_t wpid;
 int status = 0;
 
+//Response Struct
 struct Response
 {
   int pid1;
@@ -41,7 +40,7 @@ struct Response
   double time3;
 };
 
-//Fork and run command with args
+//Fork and run command with args returns response struct
 struct Response runCmd(char *command1, char *command2, char *command3, char *file)
 {
   struct Response res;
@@ -111,15 +110,16 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
   {
     //Output redirect to file and run command
     close(STDOUT_FILENO);
-    p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+    int p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
     execvp(splitCommand1[0], splitCommand1);
     //Output error
-    printf("CMD1:[SHELL 1] STATUS CODE=-1");
+    printf("CMD1:[SHELL 1] STATUS CODE=-1\n");
+    exit(1);
   }
   else //Parent Controlled
   {
     end = clock();
-    time_spent1 += (double)(end - begin) / CLOCKS_PER_SEC;
+    time_spent1 += (double)(end - begin) * 1000.0 / CLOCKS_PER_SEC;
     printf("%s\n", procStrFin[currProc]);
     res.pid1 = p1;
     res.time1 = time_spent1;
@@ -129,15 +129,16 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
     if (p2 == 0) //P2 Controlled
     {
       close(STDOUT_FILENO);
-      p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+      int p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
       execvp(splitCommand2[0], splitCommand2);
       //Output error
-      printf("CMD2:[SHELL 2] STATUS CODE=-1");
+      printf("CMD2:[SHELL 2] STATUS CODE=-1\n");
+      exit(1);
     }
     else //Parent Controlled
     {
       end = clock();
-      time_spent2 += (double)(end - begin) / CLOCKS_PER_SEC;
+      time_spent2 += (double)(end - begin) * 1000.0 / CLOCKS_PER_SEC;
       printf("%s\n", procStrFin[currProc]);
       res.pid2 = p2;
       res.time2 = time_spent2;
@@ -146,19 +147,20 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
       if (p3 == 0) //P3 Controlled
       {
         close(STDOUT_FILENO);
-        p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+        int p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
         execvp(splitCommand3[0], splitCommand3);
         //Output error
-        printf("CMD3:[SHELL 3] STATUS CODE=-1");
+        printf("CMD3:[SHELL 3] STATUS CODE=-1\n");
+        exit(1);
       }
       else //Parent Controlled
       {
         end = clock();
-        time_spent3 += (double)(end - begin) / CLOCKS_PER_SEC;
+        time_spent3 += (double)(end - begin) * 1000.0 / CLOCKS_PER_SEC;
         printf("%s\n", procStrFin[currProc]);
         res.pid3 = p3;
         res.time3 = time_spent3;
-        printf("Reading output from file and deleting temp files...\n");
+        printf("Processing Results...\n");
         while ((wpid = wait(&status)) > 0)
           ;
 
@@ -261,4 +263,3 @@ int main(int argc, char const *argv[])
 
   return 0;
 }
-//ez
