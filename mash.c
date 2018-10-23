@@ -107,19 +107,14 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
   clock_t end;
 
   int p1 = fork();
-  if (p1 < 0)
-  {
-    //Output redirect to file and run command
-    close(STDOUT_FILENO);
-    p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-    printf("CMD1:[SHELL 1] STATUS CODE=-1");
-  }
-  else if (p1 == 0) //P1 Controlled
+  if (p1 == 0) //P1 Controlled
   {
     //Output redirect to file and run command
     close(STDOUT_FILENO);
     p1file = open("p1.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
     execvp(splitCommand1[0], splitCommand1);
+    //Output error
+    printf("CMD1:[SHELL 1] STATUS CODE=-1");
   }
   else //Parent Controlled
   {
@@ -129,19 +124,15 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
     res.pid1 = p1;
     res.time1 = time_spent1;
     currProc++;
+
     int p2 = fork();
-    if (p2 < 0)
-    {
-      //Output redirect to file and run command
-      close(STDOUT_FILENO);
-      p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-      printf("CMD2:[SHELL 2] STATUS CODE=-1");
-    }
-    else if (p2 == 0) //P2 Controlled
+    if (p2 == 0) //P2 Controlled
     {
       close(STDOUT_FILENO);
       p2file = open("p2.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
       execvp(splitCommand2[0], splitCommand2);
+      //Output error
+      printf("CMD2:[SHELL 2] STATUS CODE=-1");
     }
     else //Parent Controlled
     {
@@ -152,18 +143,13 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
       res.time2 = time_spent2;
       currProc++;
       int p3 = fork();
-      if (p3 < 0)
-      {
-        //Output redirect to file and run command
-        close(STDOUT_FILENO);
-        p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-        printf("CMD3:[SHELL 3] STATUS CODE=-1");
-      }
-      else if (p3 == 0) //P3 Controlled
+      if (p3 == 0) //P3 Controlled
       {
         close(STDOUT_FILENO);
         p3file = open("p3.temp", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
         execvp(splitCommand3[0], splitCommand3);
+        //Output error
+        printf("CMD3:[SHELL 3] STATUS CODE=-1");
       }
       else //Parent Controlled
       {
@@ -175,6 +161,7 @@ struct Response runCmd(char *command1, char *command2, char *command3, char *fil
         printf("Reading output from file and deleting temp files...\n");
         while ((wpid = wait(&status)) > 0)
           ;
+
         return res;
       }
     }
@@ -274,3 +261,4 @@ int main(int argc, char const *argv[])
 
   return 0;
 }
+//ez
